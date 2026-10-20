@@ -17,6 +17,8 @@ dsh plugin --profile <你的profile名> add dsh-tool-graphic-chain
 
 装好后重启 `dsh web` 即可生效（浏览器需要刷新一次）。
 
+> 版本对应：`0.2.x` 适配 DSH `0.2.1`（会话快照改为独立的 `useChat` hook，`process` 分组把同一节点拆成思考段/回答段）；`0.1.x` 适配 DSH `0.1.x`。
+
 ## 效果
 
 ```

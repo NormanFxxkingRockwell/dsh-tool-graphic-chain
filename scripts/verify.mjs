@@ -98,14 +98,21 @@ function makeStore(initial) {
   };
 }
 
-const snapshotStore = makeStore({ chat: { order: [], nodes: new Map() } });
-function useSession(selector) {
+const snapshotStore = makeStore({ order: [], nodes: nodeStoreOf(new Map()) });
+// 0.2.x 的 chat 快照：order 数组 + nodes 访问器对象（get/values），不再是 Map。
+function nodeStoreOf(map) {
+  return {
+    get: (key) => map.get(key),
+    values: () => [...map.values()],
+  };
+}
+function useChat(selector) {
   const [v, setV] = React.useState(() => selector(snapshotStore.get()));
   React.useEffect(() => snapshotStore.subscribe(() => setV(selector(snapshotStore.get()))), []);
   return v;
 }
 function setSnapshot(order, nodes) {
-  snapshotStore.set({ chat: { order, nodes: new Map(nodes) } });
+  snapshotStore.set({ order, nodes: nodeStoreOf(new Map(nodes)) });
 }
 
 async function renderComponent(Component, props) {
@@ -167,7 +174,7 @@ const r1 = await renderComponent(components.get("assistant-step"), {
       ],
     },
   },
-  useSession,
+  useChat,
 });
 const html1 = r1.host.innerHTML;
 if (process.env.DBG) { const { writeFileSync } = await import("node:fs"); writeFileSync(new URL("../dbg-html1.txt", import.meta.url), html1, "utf8"); }
@@ -181,6 +188,31 @@ ok(html1.includes("Inspecting…"), "text between blocks is kept as markdown bod
 ok(html1.includes("dsh-tgc-dot"), "chain capsules carry a status dot");
 ok(html1.includes('data-state="ok"'), "settled ok tool gets green state");
 r1.root.unmount(); r1.host.remove();
+
+// ── 0.2.x process 分组：同一节点被拆成 reasoning / response 两段渲染 ──
+const stepProps = {
+  node: {
+    key: stepKey,
+    data: {
+      status: "closed",
+      blocks: [
+        { kind: "reasoning", text: "Let me inspect the layout first." },
+        { kind: "text", text: "Inspecting…" },
+        { kind: "tool-call", callId: "c1", name: "pwsh", argsRaw: "{}" },
+      ],
+    },
+  },
+  useChat,
+};
+const rReason = await renderComponent(components.get("assistant-step"), { ...stepProps, groupPart: "reasoning" });
+ok(rReason.host.innerHTML.includes("dsh-tgc-chain"), "reasoning part renders the chain");
+ok(!rReason.host.innerHTML.includes("Inspecting…"), "reasoning part leaves model text to the response part");
+rReason.root.unmount(); rReason.host.remove();
+
+const rResp = await renderComponent(components.get("assistant-step"), { ...stepProps, groupPart: "response" });
+ok(!rResp.host.innerHTML.includes("dsh-tgc-chain"), "response part does not duplicate the chain");
+ok(rResp.host.innerHTML.includes("Inspecting…"), "response part renders the model text");
+rResp.root.unmount(); rResp.host.remove();
 
 // ── tool-call node not covered falls back to a single capsule (no assistant-step) ──
 const call6 = nodeKey("tool-call", "c6");
@@ -201,7 +233,7 @@ setSnapshot([call6], [
     },
   }],
 ]);
-const r6 = await renderComponent(components.get("tool-call"), { node: { key: call6, data: { root: { kind: "tool-result", callId: "c6", call: { name: "read", argsRaw: "{}" }, content: [], isError: false, error: { code: "interrupted", name: "Error" }, subCalls: [] } } }, useSession });
+const r6 = await renderComponent(components.get("tool-call"), { node: { key: call6, data: { root: { kind: "tool-result", callId: "c6", call: { name: "read", argsRaw: "{}" }, content: [], isError: false, error: { code: "interrupted", name: "Error" }, subCalls: [] } } }, useChat });
 ok(r6.host.innerHTML.includes("dsh-tgc-chain"), "tool-call fallback renders a chain wrapper");
 ok(r6.host.innerHTML.includes("Read"), "fallback capsule shows the tool name");
 ok(r6.host.innerHTML.includes('data-state="stopped"'), "interrupted fallback shows stopped (amber) state");
@@ -220,7 +252,7 @@ setSnapshot([stepKey2, call3], [
 ]);
 const r3 = await renderComponent(components.get("assistant-step"), {
   node: { key: stepKey2, data: { status: "open", blocks: [{ kind: "tool-call", callId: "c3", name: "edit", argsRaw: "{}" }] } },
-  useSession,
+  useChat,
 });
 ok(r3.host.innerHTML.includes('data-state="running"'), "unsettled tool shell shows breathing (running) state");
 r3.root.unmount(); r3.host.remove();
@@ -251,7 +283,7 @@ setSnapshot([stepKey3, call5], [
 ]);
 const r5 = await renderComponent(components.get("assistant-step"), {
   node: { key: stepKey3, data: { status: "closed", blocks: [{ kind: "tool-call", callId: "c5", name: "pwsh", argsRaw: "{}" }] } },
-  useSession,
+  useChat,
 });
 ok(r5.host.innerHTML.includes('data-state="error"'), "failed tool capsule shows error state");
 r5.root.unmount(); r5.host.remove();
@@ -286,7 +318,7 @@ const r4 = await renderComponent(components.get("assistant-step"), {
       ],
     },
   },
-  useSession,
+  useChat,
 });
 const html4 = r4.host.innerHTML;
 ok(html4.includes("2 次调用"), "two tools render one chain with count 2");
@@ -300,7 +332,7 @@ setSnapshot([stepKey5], [
 ]);
 const r8 = await renderComponent(components.get("assistant-step"), {
   node: { key: stepKey5, data: { status: "closed", blocks: [{ kind: "reasoning", text: "keep me visible" }] } },
-  useSession,
+  useChat,
 });
 ok(r8.host.innerHTML.includes("dsh-tgc-chain"), "lone reasoning still renders a chain (first Think stays visible)");
 ok(r8.host.innerHTML.includes("Think"), "lone reasoning shows the Think capsule");

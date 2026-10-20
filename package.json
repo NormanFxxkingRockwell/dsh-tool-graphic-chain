@@ -1,6 +1,6 @@
 {
   "name": "dsh-tool-graphic-chain",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "可视化图形调用链：把 Think 与连续工具调用压成一条横向胶囊链，模型说话才截断。纯净，不做多余的事。",
   "type": "module",
   "main": "lib/index.js",
