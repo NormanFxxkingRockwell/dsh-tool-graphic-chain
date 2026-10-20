@@ -1,7 +1,7 @@
 {
   "name": "dsh-tool-graphic-chain",
-  "version": "0.1.0",
-  "description": "可视化图形调用链：把 Think 与连续工具调用串成一条可折叠的流水线，运行呼吸灯、成功绿灯、失败红灯。纯净，不做多余的事。",
+  "version": "0.1.1",
+  "description": "可视化图形调用链：把 Think 与连续工具调用压成一条横向胶囊链，模型说话才截断。纯净，不做多余的事。",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

@@ -4,6 +4,7 @@
 
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![dsh](https://img.shields.io/badge/dsh-plugin-4B32C3)
+[![npm](https://img.shields.io/npm/v/dsh-tool-graphic-chain.svg)](https://www.npmjs.com/package/dsh-tool-graphic-chain)
 [![repo](https://img.shields.io/badge/repo-github-181717?logo=github)](https://github.com/NormanFxxkingRockwell/dsh-tool-graphic-chain)
 
 **把会话里一行一个的工具调用，压成一条从左往右的胶囊工具链：思考与连续调用串在同一条链上，模型中途说话才截断。**

@@ -4,6 +4,7 @@ English | [中文](README.md)
 
 ![license](https://img.shields.io/badge/license-MIT-green)
 ![dsh](https://img.shields.io/badge/dsh-plugin-4B32C3)
+[![npm](https://img.shields.io/npm/v/dsh-tool-graphic-chain.svg)](https://www.npmjs.com/package/dsh-tool-graphic-chain)
 [![repo](https://img.shields.io/badge/repo-github-181717?logo=github)](https://github.com/NormanFxxkingRockwell/dsh-tool-graphic-chain)
 
 **Collapse the one-row-per-tool-call wall into a single left-to-right capsule chain: reasoning and consecutive tool calls share one chain, and the model speaking out loud is what cuts it.**
